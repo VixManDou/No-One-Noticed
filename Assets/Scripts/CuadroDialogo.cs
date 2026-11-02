@@ -32,7 +32,8 @@ public class CuadroDialogo : MonoBehaviour
     private float letrasMostradas;
     private bool escribiendo;
     private int frameApertura;
-    private float escalaTiempoAnterior = 1f;
+    private readonly System.Collections.Generic.List<MonoBehaviour> scriptsCongelados =
+        new System.Collections.Generic.List<MonoBehaviour>();
 
     private const float AltoReferencia = 1080f;
 
@@ -59,10 +60,9 @@ public class CuadroDialogo : MonoBehaviour
         indice = 0;
         frameApertura = Time.frameCount;
 
-        // Congela el juego (y el reloj de la noche) mientras se habla
+        // El tiempo sigue corriendo; solo se inmoviliza al jugador mientras habla
         EstadoJuego.DialogoAbierto = true;
-        escalaTiempoAnterior = Time.timeScale > 0f ? Time.timeScale : 1f;
-        Time.timeScale = 0f;
+        if (npc.congelarJugador) CongelarJugador(npc.tagJugador);
 
         nombreUI.text = npc.nombre;
         panel.SetActive(true);
@@ -126,13 +126,41 @@ public class CuadroDialogo : MonoBehaviour
     private void Terminar(bool completo)
     {
         panel.SetActive(false);
-        Time.timeScale = escalaTiempoAnterior;
+        LiberarJugador();
         EstadoJuego.DialogoAbierto = false;
         EstadoJuego.MarcarCierre();
 
         NPC npc = npcActual;
         npcActual = null;
         npc.AlTerminar(completo);
+    }
+
+    // ---------- Inmovilizar al jugador ----------
+
+    // Apaga los scripts del jugador (movimiento y cámara), excepto los de interacción y pausa
+    private void CongelarJugador(string tagJugador)
+    {
+        scriptsCongelados.Clear();
+        GameObject jugador = GameObject.FindGameObjectWithTag(tagJugador);
+        if (jugador == null) return;
+
+        foreach (MonoBehaviour script in jugador.GetComponentsInChildren<MonoBehaviour>())
+        {
+            if (!script.enabled) continue;
+            if (script is LectorDeCartas || script is MenuPausa) continue;
+            // Los componentes de Unity (por ejemplo, los de URP en la cámara) no se tocan
+            if (script.GetType().Namespace != null && script.GetType().Namespace.StartsWith("UnityEngine")) continue;
+
+            script.enabled = false;
+            scriptsCongelados.Add(script);
+        }
+    }
+
+    private void LiberarJugador()
+    {
+        foreach (MonoBehaviour script in scriptsCongelados)
+            if (script != null) script.enabled = true;
+        scriptsCongelados.Clear();
     }
 
     // ---------- Interfaz ----------

@@ -31,6 +31,9 @@ public class NPC : MonoBehaviour
     public AudioClip sonidoVoz;
 
     [Header("Comportamiento")]
+    [Tooltip("El jugador no puede moverse ni girar la cámara mientras habla (el tiempo sigue corriendo).")]
+    public bool congelarJugador = true;
+
     [Tooltip("Gira hacia el jugador mientras habla.")]
     public bool mirarAlJugador = true;
 
@@ -93,8 +96,8 @@ public class NPC : MonoBehaviour
         direccion.y = 0f;
         if (direccion.sqrMagnitude < 0.001f) return;
 
-        // Usa el tiempo sin escala porque el juego está pausado durante el diálogo
+        // Usa el tiempo normal: si se abre el menú de pausa, el NPC deja de girar
         Quaternion objetivo = Quaternion.LookRotation(direccion);
-        transform.rotation = Quaternion.Slerp(transform.rotation, objetivo, velocidadGiro * Time.unscaledDeltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, objetivo, velocidadGiro * Time.deltaTime);
     }
 }
