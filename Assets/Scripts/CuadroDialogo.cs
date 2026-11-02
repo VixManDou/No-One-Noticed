@@ -156,28 +156,37 @@ public class CuadroDialogo : MonoBehaviour
         rp.pivot = new Vector2(0.5f, 0f);
         rp.anchoredPosition = new Vector2(0f, 50f);
         rp.sizeDelta = new Vector2(1400f, 230f);
-        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.78f);
-        panel.AddComponent<Outline>().effectColor = new Color(1f, 1f, 1f, 0.35f);
+        // Mismo estilo que el panel de las cartas: fondo negro y borde blanco fino
+        panel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.82f);
 
-        // Nombre del personaje
-        nombreUI = CrearTexto("Nombre", rp, 32, new Color(0.95f, 0.42f, 0.1f), TextAnchor.UpperLeft);
+        Color colorBorde = new Color(1f, 1f, 1f, 0.35f);
+        Colocar(CrearImagen("BordeArriba", rp, colorBorde), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(0f, 2f));
+        Colocar(CrearImagen("BordeAbajo", rp, colorBorde), new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(0f, 2f));
+        Colocar(CrearImagen("BordeIzq", rp, colorBorde), new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(0f, 0.5f), Vector2.zero, new Vector2(2f, 0f));
+        Colocar(CrearImagen("BordeDer", rp, colorBorde), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(1f, 0.5f), Vector2.zero, new Vector2(2f, 0f));
+
+        // Nombre del personaje (blanco, como el título del panel de las cartas)
+        nombreUI = CrearTexto("Nombre", rp, 32, Color.white, TextAnchor.UpperLeft);
         Colocar(nombreUI.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
-            new Vector2(0f, -18f), new Vector2(-80f, 44f));
-        nombreUI.fontStyle = FontStyle.Bold;
+            new Vector2(0f, -16f), new Vector2(-80f, 44f));
+
+        // Línea divisoria debajo del nombre
+        Colocar(CrearImagen("Divisor", rp, colorBorde), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
+            new Vector2(0f, -64f), new Vector2(-80f, 2f));
 
         // Texto
-        textoUI = CrearTexto("Texto", rp, 30, new Color(0.93f, 0.93f, 0.93f), TextAnchor.UpperLeft);
+        textoUI = CrearTexto("Texto", rp, 30, new Color(0.92f, 0.92f, 0.92f), TextAnchor.UpperLeft);
         RectTransform rt = textoUI.rectTransform;
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
         rt.offsetMin = new Vector2(40f, 50f);
-        rt.offsetMax = new Vector2(-40f, -72f);
+        rt.offsetMax = new Vector2(-40f, -80f);
         textoUI.horizontalOverflow = HorizontalWrapMode.Wrap;
         textoUI.verticalOverflow = VerticalWrapMode.Overflow;
         textoUI.lineSpacing = 1.1f;
 
         // Indicación
-        indicacionUI = CrearTexto("Indicacion", rp, 22, new Color(1f, 1f, 1f, 0.7f), TextAnchor.LowerRight);
+        indicacionUI = CrearTexto("Indicacion", rp, 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.LowerRight);
         Colocar(indicacionUI.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f),
             new Vector2(-30f, 14f), new Vector2(400f, 34f));
 
@@ -196,6 +205,16 @@ public class CuadroDialogo : MonoBehaviour
         t.raycastTarget = false;
         t.supportRichText = false;
         return t;
+    }
+
+    private RectTransform CrearImagen(string nombre, Transform padre, Color color)
+    {
+        GameObject go = new GameObject(nombre, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(padre, false);
+        Image img = go.GetComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        return (RectTransform)go.transform;
     }
 
     private static void Colocar(RectTransform rt, Vector2 anclaMin, Vector2 anclaMax, Vector2 pivote, Vector2 posicion, Vector2 tamano)
