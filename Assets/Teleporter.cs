@@ -116,9 +116,11 @@ public class Teleporter : MonoBehaviour
             jugador.rotation = Quaternion.Euler(0f, destino.eulerAngles.y, 0f);
 
         Physics.SyncTransforms();
-        yield return null; // espera un frame antes de reactivar
 
+        // Se reactiva en el mismo frame, para que el script de movimiento nunca lo encuentre apagado
         if (cc != null) cc.enabled = true;
+
+        yield return null;
         teletransportando = false;
     }
 

@@ -16,6 +16,13 @@ public class LectorDeCartas : MonoBehaviour
     [Tooltip("Distancia máxima (en metros) para poder leer una carta.")]
     public float distancia = 3f;
 
+    [Tooltip("Grosor del rayo de detección. Más grueso hace más fácil apuntar a cartas pequeñas.")]
+    [Range(0f, 0.3f)]
+    public float radioDeteccion = 0.1f;
+
+    [Tooltip("Al presionar E, escribe en la Consola qué objetos toca el rayo. Útil si una carta no se detecta.")]
+    public bool depurar = false;
+
     [Tooltip("Pausa el juego mientras lees (el jugador y los enemigos se detienen).")]
     public bool pausarJuego = true;
 
@@ -67,6 +74,7 @@ public class LectorDeCartas : MonoBehaviour
     private Text indicacion;
 
     private Camera cam;
+    private Transform jugadorRaiz;
     private Carta cartaMirada;
     private Carta cartaAbierta;
     private bool[] estabanActivos;
@@ -80,6 +88,11 @@ public class LectorDeCartas : MonoBehaviour
     {
         cam = GetComponent<Camera>();
         if (cam == null) cam = Camera.main;
+
+        // El jugador es el objeto que tiene el Character Controller (o el padre de la cámara)
+        CharacterController cc = GetComponentInParent<CharacterController>();
+        if (cc != null) jugadorRaiz = cc.transform;
+        else jugadorRaiz = transform.parent != null ? transform.parent : transform;
 
         if (fuente == null)
             fuente = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -118,15 +131,70 @@ public class LectorDeCartas : MonoBehaviour
     private void BuscarCarta()
     {
         Carta encontrada = null;
-        Ray rayo = new Ray(cam.transform.position, cam.transform.forward);
 
-        // Ignora triggers (como las zonas de teletransporte) para que no tapen la carta
-        if (Physics.Raycast(rayo, out RaycastHit golpe, distancia, ~0, QueryTriggerInteraction.Ignore))
-            encontrada = golpe.collider.GetComponentInParent<Carta>();
+        // Lanza un rayo "grueso" que atraviesa todo e ignora triggers (como las zonas de teletransporte)
+        RaycastHit[] golpes = Physics.SphereCastAll(cam.transform.position, radioDeteccion,
+            cam.transform.forward, distancia, ~0, QueryTriggerInteraction.Ignore);
+        System.Array.Sort(golpes, (a, b) => a.distance.CompareTo(b.distance));
+
+        // 1. Busca la carta más cercana en la línea de visión
+        float distanciaCarta = 0f;
+        foreach (RaycastHit g in golpes)
+        {
+            if (EsDelJugador(g)) continue;
+            Carta c = g.collider.GetComponentInParent<Carta>();
+            if (c != null)
+            {
+                encontrada = c;
+                distanciaCarta = g.distance;
+                break;
+            }
+        }
+
+        // 2. Revisa si algo la tapa. Los objetos que la CONTIENEN (una caja, un cajón) no cuentan;
+        //    los que están en medio (una pared) sí la bloquean.
+        if (encontrada != null)
+        {
+            foreach (RaycastHit g in golpes)
+            {
+                if (g.distance >= distanciaCarta) break;
+                if (EsDelJugador(g)) continue;
+
+                Bounds caja = g.collider.bounds;
+                caja.Expand(0.05f);
+                if (!caja.Contains(encontrada.transform.position))
+                {
+                    encontrada = null;
+                    break;
+                }
+            }
+        }
+
+        if (depurar)
+        {
+            Debug.DrawRay(cam.transform.position, cam.transform.forward * distancia, encontrada != null ? Color.green : Color.red);
+            if (PresionoInteractuar())
+            {
+                string lista = golpes.Length == 0 ? "(nada en " + distancia + " m)" : "";
+                foreach (RaycastHit g in golpes)
+                    lista += $"\n  - {g.collider.name} a {g.distance:0.00} m" +
+                             (EsDelJugador(g) ? " (jugador, ignorado)" : "") +
+                             (g.collider.GetComponentInParent<Carta>() != null ? " <- CARTA" : "");
+                Debug.Log($"[LectorDeCartas] Carta detectada: {(encontrada != null ? encontrada.name : "ninguna")}. El rayo tocó:{lista}");
+            }
+        }
 
         cartaMirada = encontrada;
         aviso.gameObject.SetActive(encontrada != null);
         if (encontrada != null) aviso.text = encontrada.mensajeInteraccion;
+    }
+
+    // Ignora el collider del propio jugador y lo que ya estaba tocando el rayo al inicio
+    private bool EsDelJugador(RaycastHit g)
+    {
+        if (g.distance <= 0f) return true;
+        Transform t = g.collider.transform;
+        return t == jugadorRaiz || t.IsChildOf(jugadorRaiz);
     }
 
     // ---------- Abrir / cerrar ----------
