@@ -76,6 +76,7 @@ public class LectorDeCartas : MonoBehaviour
     private Camera cam;
     private Transform jugadorRaiz;
     private Carta cartaMirada;
+    private NPC npcMirado;
     private Carta cartaAbierta;
     private bool[] estabanActivos;
     private float escalaTiempoAnterior = 1f;
@@ -115,10 +116,22 @@ public class LectorDeCartas : MonoBehaviour
             return;
         }
 
+        // Con la pausa o un diálogo abiertos no se puede interactuar
+        if (EstadoJuego.Pausado || EstadoJuego.DialogoAbierto || EstadoJuego.SeCerroEsteFrame)
+        {
+            cartaMirada = null;
+            npcMirado = null;
+            aviso.gameObject.SetActive(false);
+            return;
+        }
+
         BuscarCarta();
 
-        if (cartaMirada != null && PresionoInteractuar())
-            AbrirCarta(cartaMirada);
+        if (PresionoInteractuar())
+        {
+            if (cartaMirada != null) AbrirCarta(cartaMirada);
+            else if (npcMirado != null) npcMirado.Hablar();
+        }
     }
 
     private void OnDisable()
@@ -137,23 +150,30 @@ public class LectorDeCartas : MonoBehaviour
             cam.transform.forward, distancia, ~0, QueryTriggerInteraction.Ignore);
         System.Array.Sort(golpes, (a, b) => a.distance.CompareTo(b.distance));
 
-        // 1. Busca la carta más cercana en la línea de visión
+        NPC npc = null;
+        Transform objetivo = null;
+
+        // 1. Busca la carta o el NPC más cercano en la línea de visión
         float distanciaCarta = 0f;
         foreach (RaycastHit g in golpes)
         {
             if (EsDelJugador(g)) continue;
             Carta c = g.collider.GetComponentInParent<Carta>();
-            if (c != null)
+            NPC n = c == null ? g.collider.GetComponentInParent<NPC>() : null;
+            if (n != null && !n.PuedeHablar) n = null;
+            if (c != null || n != null)
             {
                 encontrada = c;
+                npc = n;
+                objetivo = c != null ? c.transform : n.transform;
                 distanciaCarta = g.distance;
                 break;
             }
         }
 
-        // 2. Revisa si algo la tapa. Los objetos que la CONTIENEN (una caja, un cajón) no cuentan;
-        //    los que están en medio (una pared) sí la bloquean.
-        if (encontrada != null)
+        // 2. Revisa si algo lo tapa. Los objetos que lo CONTIENEN (una caja, un cajón) no cuentan;
+        //    los que están en medio (una pared) sí lo bloquean.
+        if (objetivo != null)
         {
             foreach (RaycastHit g in golpes)
             {
@@ -162,9 +182,11 @@ public class LectorDeCartas : MonoBehaviour
 
                 Bounds caja = g.collider.bounds;
                 caja.Expand(0.05f);
-                if (!caja.Contains(encontrada.transform.position))
+                if (!caja.Contains(objetivo.position))
                 {
                     encontrada = null;
+                    npc = null;
+                    objetivo = null;
                     break;
                 }
             }
@@ -179,14 +201,17 @@ public class LectorDeCartas : MonoBehaviour
                 foreach (RaycastHit g in golpes)
                     lista += $"\n  - {g.collider.name} a {g.distance:0.00} m" +
                              (EsDelJugador(g) ? " (jugador, ignorado)" : "") +
-                             (g.collider.GetComponentInParent<Carta>() != null ? " <- CARTA" : "");
-                Debug.Log($"[LectorDeCartas] Carta detectada: {(encontrada != null ? encontrada.name : "ninguna")}. El rayo tocó:{lista}");
+                             (g.collider.GetComponentInParent<Carta>() != null ? " <- CARTA" : "") +
+                             (g.collider.GetComponentInParent<NPC>() != null ? " <- NPC" : "");
+                Debug.Log($"[LectorDeCartas] Detectado: {(objetivo != null ? objetivo.name : "nada")}. El rayo tocó:{lista}");
             }
         }
 
         cartaMirada = encontrada;
-        aviso.gameObject.SetActive(encontrada != null);
+        npcMirado = npc;
+        aviso.gameObject.SetActive(objetivo != null);
         if (encontrada != null) aviso.text = encontrada.mensajeInteraccion;
+        else if (npc != null) aviso.text = npc.mensajeInteraccion;
     }
 
     // Ignora el collider del propio jugador y lo que ya estaba tocando el rayo al inicio
@@ -202,6 +227,7 @@ public class LectorDeCartas : MonoBehaviour
     private void AbrirCarta(Carta carta)
     {
         cartaAbierta = carta;
+        EstadoJuego.CartaAbierta = true;
         aviso.gameObject.SetActive(false);
         panel.SetActive(true);
 
@@ -284,6 +310,8 @@ public class LectorDeCartas : MonoBehaviour
         }
 
         cartaAbierta = null;
+        EstadoJuego.CartaAbierta = false;
+        EstadoJuego.MarcarCierre();
     }
 
     // ---------- Desplazamiento del texto ----------
