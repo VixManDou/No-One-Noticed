@@ -18023,13 +18023,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.09347364, y: -0.6913148, z: -0.6777655, w: -0.23233712}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 14.4, y: 56.4, z: 81.4}
   m_LocalScale: {x: 1.1838, y: 1.1838, z: 1.1838}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -78.676, y: 442.187, z: 71.041}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50604,6 +50604,7 @@ GameObject:
   - component: {fileID: 1160427033}
   - component: {fileID: 1160427037}
   - component: {fileID: 1160427038}
+  - component: {fileID: 1160427039}
   m_Layer: 0
   m_Name: Camara
   m_TagString: Untagged
@@ -50770,6 +50771,26 @@ MonoBehaviour:
   colorTexto: {r: 0.92, g: 0.92, b: 0.92, a: 1}
   tamanoTexto: 28
   velocidadDesplazamiento: 600
+--- !u!114 &1160427039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160427032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61849675cfbb87b45908390d7790c5cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MenuPausa
+  escenaMenuPrincipal: MainMenu
+  scriptsADesactivar:
+  - {fileID: 1160427037}
+  - {fileID: 1160427033}
+  bloquearCursorAlContinuar: 1
+  fuente: {fileID: 0}
+  colorTitulo: {r: 0.95, g: 0.42, b: 0.1, a: 1}
+  oscuridadFondo: 0.8
 --- !u!4 &1161040233 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9017746384622937425, guid: 7d71c7d7433733a44b5bdaedbc14fecc, type: 3}
