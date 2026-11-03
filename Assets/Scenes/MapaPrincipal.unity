@@ -264625,8 +264625,8 @@ Transform:
   m_GameObject: {fileID: 754029085}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 88.90906, y: 0, z: -15.970749}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 79.700935, y: -0.21892697, z: 269.8011}
+  m_LocalScale: {x: 0.1, y: 0.14285712, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1014206407}
@@ -264699,7 +264699,7 @@ Transform:
   - {fileID: 659940979}
   - {fileID: 433805693}
   - {fileID: 517453448}
-  m_Father: {fileID: 927816456}
+  m_Father: {fileID: 1147349894}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &754029087
 BoxCollider:
@@ -329100,7 +329100,6 @@ Transform:
   - {fileID: 116071103}
   - {fileID: 985358068}
   - {fileID: 1374316852}
-  - {fileID: 754029086}
   - {fileID: 840012854}
   - {fileID: 1270789135}
   - {fileID: 1864941852}
@@ -475019,6 +475018,9 @@ PrefabInstance:
       addedObject: {fileID: 1204839433}
     - targetCorrespondingSourceObject: {fileID: 1628712516319366484, guid: 5179f299d2b7c4f9bb20c97a93a4183f, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 754029086}
+    - targetCorrespondingSourceObject: {fileID: 1628712516319366484, guid: 5179f299d2b7c4f9bb20c97a93a4183f, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 927816456}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5179f299d2b7c4f9bb20c97a93a4183f, type: 3}
@@ -489962,6 +489964,7 @@ GameObject:
   - component: {fileID: 1382396647}
   - component: {fileID: 1382396650}
   - component: {fileID: 1382396651}
+  - component: {fileID: 1382396652}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -490086,6 +490089,32 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1382396652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1382396645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b4a99581d2f2114b971909d823021ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PasosJugador
+  modo: 1
+  pasosMadera:
+  - {fileID: 8300000, guid: 77cac1e591b4dc94abee548f9cbb171a, type: 3}
+  pasosConcreto:
+  - {fileID: 8300000, guid: cd31c724888a6a6438fbf456bfbe8e6c, type: 3}
+  volumen: 0.6
+  zonasMadera:
+  - {fileID: 754029087}
+  intervaloCaminar: 0.5
+  intervaloCorrer: 0.32
+  variacionTono: 0.1
+  tonoAlCorrer: 1.35
+  velocidadMinima: 0.2
+  requerirSuelo: 1
 --- !u!4 &1382507317 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6042495249239765992, guid: e58d1973b4c918543a92dc9ed6355844, type: 3}
