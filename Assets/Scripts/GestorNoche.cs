@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 /// <summary>
 /// Controla una noche del juego:
@@ -81,6 +84,24 @@ public class GestorNoche : MonoBehaviour
     [Tooltip("Se ejecuta con la pantalla en negro al pasar de noche (por ejemplo, activar 'Noche2' y sus cartas).")]
     public UnityEvent alPasarNoche;
 
+    [Header("Final")]
+    [Tooltip("Márcalo en la ÚLTIMA noche de un interior: al salir por la puerta se muestra la pantalla del final en lugar de pasar a otra noche.")]
+    public bool esFinal = false;
+
+    public string tituloJuego = "NO ONE NOTICED";
+
+    [Tooltip("Texto que aparece debajo del título.")]
+    [TextArea(3, 8)]
+    public string leyendaFinal = "";
+
+    public string textoNumeroFinal = "Final 1 de 3";
+
+    [Tooltip("Escena que se carga al presionar E en la pantalla del final. Déjalo vacío para quedarse en el final.")]
+    public string escenaAlTerminar = "MainMenu";
+
+    [Tooltip("Segundos antes de que aparezca 'Presiona E para continuar'.")]
+    public float esperaAntesDeContinuar = 3f;
+
     [Header("Tiempo agotado")]
     [Tooltip("Si se acaba el tiempo, se recarga la escena y la noche empieza de nuevo.")]
     public bool reiniciarAlAgotarTiempo = true;
@@ -112,6 +133,7 @@ public class GestorNoche : MonoBehaviour
     private Text mensajeUI;
     private Text tituloUI;
     private Image fundidoUI;
+    private Transform canvasUI;
 
     private const float AltoReferencia = 1080f;
 
@@ -257,6 +279,12 @@ public class GestorNoche : MonoBehaviour
     {
         yield return Fundir(0f, 1f);
 
+        if (esFinal)
+        {
+            yield return MostrarFinal();
+            yield break;
+        }
+
         if (!string.IsNullOrEmpty(siguienteEscena))
         {
             Time.timeScale = 1f;
@@ -315,6 +343,222 @@ public class GestorNoche : MonoBehaviour
             Debug.LogWarning($"[GestorNoche] '{siguienteNoche.name}' no se pudo mostrar porque uno de sus objetos padre está desactivado.", this);
         else
             Debug.Log($"[GestorNoche] '{name}' terminó. Empieza '{siguienteNoche.name}'.", this);
+    }
+
+    // ---------- Pantalla del final ----------
+
+    private IEnumerator MostrarFinal()
+    {
+        // Congela el juego y apaga lo que podría reaccionar a las teclas
+        Time.timeScale = 0f;
+        foreach (MenuPausa m in FindObjectsByType<MenuPausa>(FindObjectsSortMode.None)) m.enabled = false;
+        foreach (LectorDeCartas l in FindObjectsByType<LectorDeCartas>(FindObjectsSortMode.None)) l.enabled = false;
+
+        mostrarTemporizador = false;
+        temporizadorUI.gameObject.SetActive(false);
+        objetivoUI.gameObject.SetActive(false);
+        SetAlfa(fundidoUI, 1f);
+
+        // El final tiene su propio Canvas encima de todo (transiciones, cartas, pausa)
+        GameObject goFinal = new GameObject("UI_Final");
+        Canvas canvasFinal = goFinal.AddComponent<Canvas>();
+        canvasFinal.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvasFinal.sortingOrder = 500;
+        CanvasScaler escaladorFinal = goFinal.AddComponent<CanvasScaler>();
+        escaladorFinal.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        escaladorFinal.referenceResolution = new Vector2(1920f, AltoReferencia);
+        escaladorFinal.matchWidthOrHeight = 1f;
+
+        GameObject goNegro = new GameObject("Negro", typeof(RectTransform), typeof(Image));
+        goNegro.transform.SetParent(goFinal.transform, false);
+        RectTransform rn = (RectTransform)goNegro.transform;
+        rn.anchorMin = Vector2.zero;
+        rn.anchorMax = Vector2.one;
+        rn.offsetMin = rn.offsetMax = Vector2.zero;
+        Image negro = goNegro.GetComponent<Image>();
+        negro.color = Color.black;
+        negro.raycastTarget = false;
+
+        Transform padreFinal = goFinal.transform;
+        Debug.Log($"[GestorNoche] '{name}' es la última noche: se muestra el final.", this);
+
+        // Título arriba
+        Text titulo = CrearTexto("FinalTitulo", padreFinal, 96, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 1f), new Vector2(0f, -100f), new Vector2(1700f, 170f));
+        titulo.fontStyle = FontStyle.Bold;
+        titulo.text = tituloJuego;
+
+        // Zona visible de la leyenda (recorta lo que se sale)
+        GameObject goVista = new GameObject("FinalVista", typeof(RectTransform), typeof(RectMask2D));
+        goVista.transform.SetParent(padreFinal, false);
+        RectTransform vistaFinal = (RectTransform)goVista.transform;
+        vistaFinal.anchorMin = new Vector2(0.5f, 0f);
+        vistaFinal.anchorMax = new Vector2(0.5f, 1f);
+        vistaFinal.pivot = new Vector2(0.5f, 0.5f);
+        vistaFinal.offsetMin = new Vector2(-650f, 190f);
+        vistaFinal.offsetMax = new Vector2(650f, -300f);
+
+        Text leyenda = CrearTexto("FinalLeyenda", vistaFinal, 32, TextAnchor.UpperCenter,
+            new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1300f, 100f));
+        RectTransform rLeyenda = leyenda.rectTransform;
+        rLeyenda.anchorMin = new Vector2(0f, 1f);
+        rLeyenda.anchorMax = new Vector2(1f, 1f);
+        rLeyenda.pivot = new Vector2(0.5f, 1f);
+        rLeyenda.anchoredPosition = Vector2.zero;
+        rLeyenda.sizeDelta = new Vector2(0f, 100f);
+        leyenda.fontStyle = FontStyle.Italic;
+        leyenda.color = new Color(0.85f, 0.85f, 0.85f);
+        leyenda.verticalOverflow = VerticalWrapMode.Overflow;
+        leyenda.lineSpacing = 1.1f;
+        leyenda.text = leyendaFinal;
+
+        // Barra de desplazamiento a la derecha de la leyenda
+        Image barraFinal = CrearImagenFinal("FinalBarra", padreFinal, new Color(1f, 1f, 1f, 0.12f));
+        RectTransform rBarra = barraFinal.rectTransform;
+        rBarra.anchorMin = new Vector2(0.5f, 0f);
+        rBarra.anchorMax = new Vector2(0.5f, 1f);
+        rBarra.offsetMin = new Vector2(675f, 190f);
+        rBarra.offsetMax = new Vector2(679f, -300f);
+        Image manijaFinal = CrearImagenFinal("FinalManija", rBarra, new Color(1f, 1f, 1f, 0.7f));
+        RectTransform rManija = manijaFinal.rectTransform;
+        rManija.anchorMin = new Vector2(0f, 1f);
+        rManija.anchorMax = new Vector2(1f, 1f);
+        rManija.pivot = new Vector2(0.5f, 1f);
+        barraFinal.gameObject.SetActive(false);
+
+        // Invisibles desde el inicio: si no, se verían un instante mientras se calcula el tamaño
+        SetAlfa(titulo, 0f);
+        SetAlfa(leyenda, 0f);
+
+        // Espera un frame para que Unity calcule el tamaño del texto
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+        float altoTexto = leyenda.preferredHeight + 20f;
+        float altoVista = vistaFinal.rect.height;
+        rLeyenda.sizeDelta = new Vector2(0f, altoTexto);
+        float maximo = Mathf.Max(0f, altoTexto - altoVista);
+
+        if (maximo > 0f)
+        {
+            StartCoroutine(DesplazarFinal(rLeyenda, rManija, altoVista, altoTexto, maximo));
+        }
+        else
+        {
+            // Si el texto es corto, se centra en la zona visible
+            rLeyenda.anchoredPosition = new Vector2(0f, -(altoVista - altoTexto) * 0.5f);
+        }
+
+        Text numero = CrearTexto("FinalNumero", padreFinal, 32, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0f), new Vector2(0f, 110f), new Vector2(900f, 50f));
+        numero.color = new Color(0.95f, 0.42f, 0.1f);
+        numero.text = textoNumeroFinal;
+
+        Text continuar = CrearTexto("FinalContinuar", padreFinal, 22, TextAnchor.MiddleCenter,
+            new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(900f, 40f));
+        continuar.color = new Color(1f, 1f, 1f, 0.6f);
+        continuar.text = maximo > 0f
+            ? "[E] Continuar        [Rueda / W S] Desplazar"
+            : "Presiona E para continuar";
+
+        SetAlfa(titulo, 0f);
+        SetAlfa(leyenda, 0f);
+        SetAlfa(numero, 0f);
+        SetAlfa(continuar, 0f);
+
+        // Aparecen uno tras otro
+        yield return new WaitForSecondsRealtime(1f);
+        yield return Aparecer(titulo, 2f);
+        yield return new WaitForSecondsRealtime(1f);
+        if (!string.IsNullOrEmpty(leyendaFinal))
+        {
+            yield return Aparecer(leyenda, 2f);
+            if (maximo > 0f) barraFinal.gameObject.SetActive(true);
+            yield return new WaitForSecondsRealtime(1f);
+        }
+        yield return Aparecer(numero, 1.5f);
+
+        if (string.IsNullOrEmpty(escenaAlTerminar)) yield break;
+
+        yield return new WaitForSecondsRealtime(esperaAntesDeContinuar);
+        yield return Aparecer(continuar, 1f, 0.6f);
+
+        while (!EstadoJuego.TeclaInteractuar())
+            yield return null;
+
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene(escenaAlTerminar);
+    }
+
+    // Mueve la leyenda con la rueda del mouse, W/S o las flechas
+    private IEnumerator DesplazarFinal(RectTransform texto, RectTransform manija, float altoVista, float altoTexto, float maximo)
+    {
+        float desplazamiento = 0f;
+        RectTransform barra = (RectTransform)manija.parent;
+
+        while (true)
+        {
+            desplazamiento += LeerDesplazamiento();
+            desplazamiento = Mathf.Clamp(desplazamiento, 0f, maximo);
+            texto.anchoredPosition = new Vector2(0f, desplazamiento);
+
+            float altoBarra = barra.rect.height;
+            float altoManija = Mathf.Max(30f, altoBarra * (altoVista / altoTexto));
+            manija.sizeDelta = new Vector2(0f, altoManija);
+            manija.anchoredPosition = new Vector2(0f, -(altoBarra - altoManija) * (desplazamiento / maximo));
+
+            yield return null;
+        }
+    }
+
+    private static float LeerDesplazamiento()
+    {
+        const float pasoRueda = 80f;
+        const float velocidadTeclas = 600f;
+        float cambio = 0f;
+#if ENABLE_INPUT_SYSTEM
+        if (Mouse.current != null)
+        {
+            float rueda = Mouse.current.scroll.ReadValue().y;
+            if (rueda != 0f) cambio -= Mathf.Sign(rueda) * pasoRueda;
+        }
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
+                cambio += velocidadTeclas * Time.unscaledDeltaTime;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
+                cambio -= velocidadTeclas * Time.unscaledDeltaTime;
+        }
+#else
+        float rueda = Input.mouseScrollDelta.y;
+        if (rueda != 0f) cambio -= Mathf.Sign(rueda) * pasoRueda;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            cambio += velocidadTeclas * Time.unscaledDeltaTime;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            cambio -= velocidadTeclas * Time.unscaledDeltaTime;
+#endif
+        return cambio;
+    }
+
+    private Image CrearImagenFinal(string nombre, Transform padre, Color color)
+    {
+        GameObject go = new GameObject(nombre, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(padre, false);
+        Image img = go.GetComponent<Image>();
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    private IEnumerator Aparecer(Text texto, float duracion, float alfaFinal = 1f)
+    {
+        for (float t = 0f; t < duracion; t += Time.unscaledDeltaTime)
+        {
+            SetAlfa(texto, alfaFinal * (t / duracion));
+            yield return null;
+        }
+        SetAlfa(texto, alfaFinal);
     }
 
     private IEnumerator TiempoAgotado()
@@ -407,6 +651,7 @@ public class GestorNoche : MonoBehaviour
     {
         GameObject goCanvas = new GameObject("UI_Noche");
         goCanvas.transform.SetParent(transform, false); // se oculta junto con el gestor
+        canvasUI = goCanvas.transform;
         Canvas canvas = goCanvas.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 90; // debajo de la pantalla de lectura de cartas

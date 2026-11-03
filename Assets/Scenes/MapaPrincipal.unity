@@ -168230,7 +168230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &482296592
 Transform:
   m_ObjectHideFlags: 0
@@ -169480,7 +169480,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &486792876
 Transform:
   m_ObjectHideFlags: 0
@@ -169561,6 +169561,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  esFinal: 0
+  tituloJuego: NO ONE NOTICED
+  leyendaFinal: 
+  textoNumeroFinal: Final 1 de 3
+  escenaAlTerminar: MainMenu
+  esperaAntesDeContinuar: 3
   reiniciarAlAgotarTiempo: 1
   alAgotarTiempo:
     m_PersistentCalls:
@@ -249200,6 +249206,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  esFinal: 0
+  tituloJuego: NO ONE NOTICED
+  leyendaFinal: 
+  textoNumeroFinal: Final 1 de 3
+  escenaAlTerminar: MainMenu
+  esperaAntesDeContinuar: 3
   reiniciarAlAgotarTiempo: 1
   alAgotarTiempo:
     m_PersistentCalls:
@@ -321282,6 +321294,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  esFinal: 0
+  tituloJuego: NO ONE NOTICED
+  leyendaFinal: 
+  textoNumeroFinal: Final 1 de 3
+  escenaAlTerminar: MainMenu
+  esperaAntesDeContinuar: 3
   reiniciarAlAgotarTiempo: 1
   alAgotarTiempo:
     m_PersistentCalls:
@@ -424117,7 +424135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1204839433
 Transform:
   m_ObjectHideFlags: 0
@@ -424185,6 +424203,12 @@ MonoBehaviour:
   alPasarNoche:
     m_PersistentCalls:
       m_Calls: []
+  esFinal: 1
+  tituloJuego: No One Noticed
+  leyendaFinal: "Dicen los habitantes m\xE1s viejos del pueblo que, hace muchos a\xF1os, vivi\xF3 un hombre que amaba tanto su hogar que nunca permiti\xF3 que nada cambiara.\n\nConoc\xEDa cada rinc\xF3n de su casa, cada objeto que hab\xEDa sobre sus muebles y cada peque\xF1o h\xE1bito de la persona con quien compart\xEDa su vida.\n\nSab\xEDa a qu\xE9 hora despertaba, qu\xE9 lugar ocupaba en la mesa, cu\xE1les eran sus palabras favoritas y hasta qu\xE9 cosas sol\xEDa olvidar.\n\nAl principio, los vecinos consideraban aquello una muestra de cari\xF1o. Dec\xEDan que pocas personas prestaban tanta atenci\xF3n a alguien.\n\nPero con el tiempo comenzaron a notar algo extra\xF1o.\n\nLa mujer dej\xF3 de aparecer por el pueblo. Nadie sab\xEDa cu\xE1ndo hab\xEDa sido la \xFAltima vez que la hab\xEDan visto. Sin embargo, el hombre continuaba comport\xE1ndose como siempre.\n\nSegu\xEDa comprando para dos, manten\xEDa dos lugares en la mesa y hablaba de ella como si acabara de salir de casa.\n\nCuando alguien preguntaba por su esposa, \xE9l respond\xEDa tranquilamente:\n\n\xABEst\xE1 aqu\xED. No se ha ido a ninguna parte\xBB.\n\nUn d\xEDa, los vecinos dejaron de ver al hombre tambi\xE9n. La casa permaneci\xF3 cerrada durante mucho tiempo, aunque algunos aseguraban que, por las noches, pod\xEDa verse una luz encendida detr\xE1s de las ventanas.\n\nDesde entonces, existe una advertencia entre los habitantes m\xE1s antiguos:\n\n\xABNunca entres en una casa donde todo permanece exactamente en su lugar. Quiz\xE1 no est\xE9 vac\xEDa. Quiz\xE1 alguien simplemente no ha aceptado que el tiempo siga adelante\xBB."
+  textoNumeroFinal: Final 1 de 3
+  escenaAlTerminar: MainMenu
+  esperaAntesDeContinuar: 3
   reiniciarAlAgotarTiempo: 1
   alAgotarTiempo:
     m_PersistentCalls:
@@ -710332,6 +710356,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  esFinal: 0
+  tituloJuego: NO ONE NOTICED
+  leyendaFinal: 
+  textoNumeroFinal: Final 1 de 3
+  escenaAlTerminar: MainMenu
+  esperaAntesDeContinuar: 3
   reiniciarAlAgotarTiempo: 1
   alAgotarTiempo:
     m_PersistentCalls:
