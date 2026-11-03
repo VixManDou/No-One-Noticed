@@ -63,10 +63,12 @@ public class PasosJugador : MonoBehaviour
     private float temporizador;
     private int ultimoIndice = -1;
     private bool estabaEnMadera;
+    private Vector3 posicionAnterior;
 
     private void Awake()
     {
         cc = GetComponent<CharacterController>();
+        posicionAnterior = transform.position;
 
         fuente = gameObject.AddComponent<AudioSource>();
         fuente.playOnAwake = false;
@@ -142,12 +144,22 @@ public class PasosJugador : MonoBehaviour
 
     private bool EstaCaminando()
     {
-        if (!cc.enabled) return false;
+        // Mide cuánto se movió realmente el jugador desde el frame anterior.
+        // (cc.velocity no sirve: conserva la última velocidad cuando el script de movimiento se apaga)
+        Vector3 posicion = transform.position;
+        Vector3 desplazamiento = posicion - posicionAnterior;
+        posicionAnterior = posicion;
+        desplazamiento.y = 0f;
+
+        if (!cc.enabled || Time.deltaTime <= 0f) return false;
+
+        // Con un diálogo, una carta o la pausa abiertos, nunca suenan pasos
+        if (EstadoJuego.Ocupado) return false;
+
         if (requerirSuelo && !cc.isGrounded) return false;
 
-        Vector3 v = cc.velocity;
-        v.y = 0f;
-        return v.magnitude > velocidadMinima;
+        float velocidad = desplazamiento.magnitude / Time.deltaTime;
+        return velocidad > velocidadMinima;
     }
 
     private bool EnZonaMadera()
